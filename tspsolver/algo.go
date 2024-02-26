@@ -5,24 +5,16 @@ import (
 	"math/rand"
 )
 
-func getInitialPaths(dm [][]float64, num int) []*Path {
+func getInitialPaths(dm [][]float64, num int, seed int) []*Path {
 	paths := []*Path{}
-	nnPaths := 0
-	randomPaths := 0
 
-	if len(dm) < num {
-		nnPaths = len(dm)
-		randomPaths = num - nnPaths
-	} else {
-		nnPaths = num
-	}
-
-	for i := 0; i < nnPaths; i++ {
-		paths = append(paths, nearestNeighborPath(dm, i))
-	}
-	// rand.Seed(time.Now().UnixNano())
-	for i := 0; i < randomPaths; i++ {
-		paths = append(paths, randomPath(dm))
+	r := rand.New(rand.NewSource(int64(seed)))
+	for i := 0; i < num; i++ {
+		if i < len(dm) {
+			paths = append(paths, nearestNeighborPath(dm, i))
+		} else {
+			paths = append(paths, randomPath(dm, r))
+		}
 	}
 
 	return paths
@@ -58,13 +50,14 @@ func nearestNeighborPath(dm [][]float64, startNode int) *Path {
 	}
 }
 
-func randomPath(dm [][]float64) *Path {
+func randomPath(dm [][]float64, r *rand.Rand) *Path {
 	n := len(dm)
-	nodes := make([]int, n)
+	nodes := []int{}
 	for i := 0; i < n; i++ {
 		nodes = append(nodes, i)
 	}
-	rand.Shuffle(n, func(i, j int) { nodes[i], nodes[j] = nodes[j], nodes[i] })
+	r.Shuffle(n, func(i, j int) { nodes[i], nodes[j] = nodes[j], nodes[i] })
+	// fmt.Println(nodes)
 	return &Path{
 		nodes: nodes,
 		dm:    dm,
@@ -75,7 +68,7 @@ func randomPath(dm [][]float64) *Path {
 
 // }
 
-func _3opt(path *Path) {
+func _3opt(path *Path) *Path {
 	improved := true
 	n := path.Len()
 
@@ -103,4 +96,6 @@ OUTER:
 		}
 		improved = false
 	}
+
+	return nil
 }
