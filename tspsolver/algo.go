@@ -10,11 +10,12 @@ func getInitialPaths(dm [][]float64, num int, seed int) []*Path {
 
 	r := rand.New(rand.NewSource(int64(seed)))
 	for i := 0; i < num; i++ {
-		if i < len(dm) {
-			paths = append(paths, nearestNeighborPath(dm, i))
-		} else {
-			paths = append(paths, randomPath(dm, r))
-		}
+		paths = append(paths, RandomPath(dm, r))
+		// if i < len(dm) {
+		// 	paths = append(paths, nearestNeighborPath(dm, i))
+		// } else {
+		// 	paths = append(paths, RandomPath(dm, r))
+		// }
 	}
 
 	return paths
@@ -50,7 +51,7 @@ func nearestNeighborPath(dm [][]float64, startNode int) *Path {
 	}
 }
 
-func randomPath(dm [][]float64, r *rand.Rand) *Path {
+func RandomPath(dm [][]float64, r *rand.Rand) *Path {
 	n := len(dm)
 	nodes := []int{}
 	for i := 0; i < n; i++ {
@@ -64,31 +65,58 @@ func randomPath(dm [][]float64, r *rand.Rand) *Path {
 	}
 }
 
-// func _2opt(path *Path) *Path {
-
-// }
-
-func _3opt(path *Path) *Path {
+func Opt2(path *Path) *Path {
+	newPath := path
 	improved := true
 	n := path.Len()
 
 OUTER:
 	for improved {
+		for i := 0; i < n-1; i++ {
+			for j := i + 1; j < n; j++ {
+				diff := newPath.calculateDiff2(i, j)
+				if diff < -0.0001 {
+					newPath = newPath.swap2(i, j)
+					continue OUTER
+				}
+			}
+		}
+		improved = false
+	}
+
+	return newPath
+}
+
+func Opt3(path *Path) *Path {
+	improved := true
+	n := path.Len()
+	newPath := path
+	// deadline := time.Now().Add(2 * time.Second)
+	// deadline := time.Now().Add(500 * time.Millisecond)
+
+OUTER:
+	for improved {
+		// if time.Now().After(deadline) {
+		// 	break
+		// }
+
+		// fmt.Println(newPath.Distance())
 		for i := 0; i < n-2; i++ {
 			for j := i + 1; j < n-1; j++ {
 				for k := j + 1; k < n; k++ {
 					diff := 0.0
 					conf := 0
 					for l := 1; l < 8; l++ {
-						localDiff := path.calculateDiff3(l, i, j, k)
+						localDiff := newPath.calculateDiff3(l, i, j, k)
 						if localDiff < diff {
 							diff = localDiff
 							conf = l
 						}
 					}
 
-					if diff < 0 {
-						path.swap3(conf, i, j, k)
+					// to prevent floating point small number addition
+					if diff < -0.0001 {
+						newPath = newPath.swap3(conf, i, j, k)
 						continue OUTER
 					}
 				}
@@ -97,5 +125,5 @@ OUTER:
 		improved = false
 	}
 
-	return nil
+	return newPath
 }

@@ -56,7 +56,7 @@ func TestRandomPath(t *testing.T) {
 
 	r := rand.New(rand.NewSource(42))
 	for i := 0; i < 10000; i++ {
-		path := randomPath(dm, r)
+		path := RandomPath(dm, r)
 		nodes := map[int]bool{}
 		assert.Equal(t, dm, path.dm)
 		assert.Equal(t, 48, len(path.nodes))
@@ -244,4 +244,21 @@ func TestDiffAndSwap3(t *testing.T) {
 	after.nodes = []int{2, 6, 5, 4, 3, 1, 0, 7}
 	assert.Equal(t, after.Distance()-before.Distance(), before.calculateDiff3(7, 1, 2, 6))
 	assert.Equal(t, after.nodes, before.swap3(7, 1, 2, 6).nodes)
+}
+
+func TestSLS(t *testing.T) {
+	// matrixName := "../data/tsp-problem-100-1000-50-25-1.txt"
+	// matrixName := "../data/tsp-problem-200-1000-500-100-1.txt"
+	matrixName := "../data/tsp-problem-1000-1000-500-100-1.txt"
+
+	dm, _ := ReadMatrix(matrixName)
+
+	r := rand.New(rand.NewSource(0))
+	solver := New(dm, 0)
+	before := RandomPath(dm, r)
+	before.Print("Before  ")
+	after2 := solver.SolveSLS(1, "2opt")
+	after2.Print("After2  ")
+	after3 := solver.SolveSLS(1, "3opt")
+	after3.Print("After3  ")
 }

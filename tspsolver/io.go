@@ -58,7 +58,7 @@ func ReadPath(fileName string) ([]int, error) {
 		if err != nil {
 			return nil, err
 		}
-		path = append(path, i)
+		path = append(path, i-1)
 	}
 
 	return path, nil

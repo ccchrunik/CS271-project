@@ -1,16 +1,31 @@
 package tspsolver
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
-func New(dm [][]float64) *TspSolver {
+func New(dm [][]float64, seed int) *TspSolver {
 	return &TspSolver{
-		dm: dm,
+		dm:   dm,
+		seed: seed,
+	}
+}
+
+func NewPath(dm [][]float64, nodes []int) *Path {
+	return &Path{
+		dm:    dm,
+		nodes: nodes,
 	}
 }
 
 type Path struct {
 	nodes []int
 	dm    [][]float64
+}
+
+func (p *Path) Print(prefix string) {
+	fmt.Printf("%s Nodes: %v. Distance: %f\n", prefix, p.nodes, p.Distance())
 }
 
 func (p *Path) Len() int {
@@ -28,6 +43,11 @@ func (p *Path) Distance() float64 {
 
 func (p *Path) cost(x, y int) float64 {
 	return p.dm[p.nodes[x]][p.nodes[y]]
+}
+
+func (p *Path) calculateDiff2(i, j int) float64 {
+	n := len(p.nodes)
+	return -p.cost(i, i+1) - p.cost(j, (j+1)%n) + p.cost(i, j) + p.cost(i+1, (j+1)%n)
 }
 
 func (p *Path) calculateDiff3(l, i, j, k int) float64 {
@@ -56,12 +76,20 @@ func (p *Path) calculateDiff3(l, i, j, k int) float64 {
 }
 
 // swap portion of the list given two index
-func swap2(list []int) {
+func reverse(list []int) {
 	n := len(list)
 	for i := 0; i < n/2; i++ {
 		j := n - 1 - i
 		list[i], list[j] = list[j], list[i]
 	}
+}
+
+func (p *Path) swap2(i, j int) *Path {
+	newPath := &Path{}
+	newPath.dm = p.dm
+	newPath.nodes = append([]int{}, p.nodes...)
+	reverse(newPath.nodes[i+1 : j+1])
+	return newPath
 }
 
 func (p *Path) swap3(l, i, j, k int) *Path {
@@ -84,29 +112,33 @@ func (p *Path) swap3(l, i, j, k int) *Path {
 
 	// ex: (i, j, k) = (2, 4, 7) -> (3, 4), (5, 6, 7), (0, 1, 2)
 	if l&1 != 0 {
-		swap2(newPath.nodes[0 : j-i])
+		reverse(newPath.nodes[0 : j-i])
 	}
 	if l&2 != 0 {
-		swap2(newPath.nodes[j-i : k-i])
+		reverse(newPath.nodes[j-i : k-i])
 	}
 	if l&4 != 0 {
-		swap2(newPath.nodes[k-i:])
+		reverse(newPath.nodes[k-i:])
 	}
 
 	return newPath
 }
 
 type TspSolver struct {
-	dm [][]float64
+	dm   [][]float64
+	seed int
 }
 
-func (ts *TspSolver) solveSLS(n int) *Path {
-	paths := getInitialPaths(ts.dm, n, 42)
+func (ts *TspSolver) SolveSLS(n int, method string) *Path {
+	paths := getInitialPaths(ts.dm, n, ts.seed)
 	optPaths := []*Path{}
 
 	for _, p := range paths {
-		// or _2opt(p)
-		optPaths = append(optPaths, _3opt(p))
+		if method == "2opt" {
+			optPaths = append(optPaths, Opt2(p))
+		} else {
+			optPaths = append(optPaths, Opt3(p))
+		}
 	}
 
 	var minPath *Path
