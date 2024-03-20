@@ -77,7 +77,7 @@ func TestNearestNeighbor(t *testing.T) {
 
 	// start from 0
 	nn1 := []int{0, 12, 1, 14, 8, 4, 6, 2, 11, 13, 9, 7, 5, 3, 10}
-	nnPath1 := nearestNeighborPath(dm, 0)
+	nnPath1 := NearestNeighborPath(dm, 0)
 	assert.Equal(t, len(nn1), len(nnPath1.nodes))
 	assert.Equal(t, nn1, nnPath1.nodes)
 }

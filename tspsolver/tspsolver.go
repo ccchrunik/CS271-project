@@ -3,6 +3,7 @@ package tspsolver
 import (
 	"fmt"
 	"math"
+	"os"
 )
 
 func New(dm [][]float64, seed int) *TspSolver {
@@ -22,6 +23,10 @@ func NewPath(dm [][]float64, nodes []int) *Path {
 type Path struct {
 	nodes []int
 	dm    [][]float64
+}
+
+func (p *Path) Write(f *os.File) {
+	fmt.Fprintf(f, "%d\n%v\n\n", len(p.nodes), p.nodes)
 }
 
 func (p *Path) Print(prefix string) {
@@ -129,12 +134,20 @@ type TspSolver struct {
 	seed int
 }
 
+func (ts *TspSolver) Len() int {
+	return len(ts.dm)
+}
+
 func (ts *TspSolver) SolveSLS(n int, method string) *Path {
 	paths := getInitialPaths(ts.dm, n, ts.seed)
 	optPaths := []*Path{}
 
-	for _, p := range paths {
-		if method == "2opt" {
+	for i, p := range paths {
+		if method == "nn" {
+			if i < len(ts.dm) {
+				optPaths = append(optPaths, p)
+			}
+		} else if method == "2opt" {
 			optPaths = append(optPaths, Opt2(p))
 		} else {
 			optPaths = append(optPaths, Opt3(p))

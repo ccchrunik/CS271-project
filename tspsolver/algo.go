@@ -3,6 +3,7 @@ package tspsolver
 import (
 	"math"
 	"math/rand"
+	"time"
 )
 
 func getInitialPaths(dm [][]float64, num int, seed int) []*Path {
@@ -10,18 +11,18 @@ func getInitialPaths(dm [][]float64, num int, seed int) []*Path {
 
 	r := rand.New(rand.NewSource(int64(seed)))
 	for i := 0; i < num; i++ {
-		paths = append(paths, RandomPath(dm, r))
-		// if i < len(dm) {
-		// 	paths = append(paths, nearestNeighborPath(dm, i))
-		// } else {
-		// 	paths = append(paths, RandomPath(dm, r))
-		// }
+		// paths = append(paths, RandomPath(dm, r))
+		if i < len(dm) {
+			paths = append(paths, NearestNeighborPath(dm, i))
+		} else {
+			paths = append(paths, RandomPath(dm, r))
+		}
 	}
 
 	return paths
 }
 
-func nearestNeighborPath(dm [][]float64, startNode int) *Path {
+func NearestNeighborPath(dm [][]float64, startNode int) *Path {
 	notVisited := map[int]bool{}
 	nodes := []int{}
 	for i := 0; i < len(dm); i++ {
@@ -91,14 +92,13 @@ func Opt3(path *Path) *Path {
 	improved := true
 	n := path.Len()
 	newPath := path
-	// deadline := time.Now().Add(2 * time.Second)
-	// deadline := time.Now().Add(500 * time.Millisecond)
+	deadline := time.Now().Add(10 * time.Minute)
 
 OUTER:
 	for improved {
-		// if time.Now().After(deadline) {
-		// 	break
-		// }
+		if time.Now().After(deadline) {
+			break
+		}
 
 		// fmt.Println(newPath.Distance())
 		for i := 0; i < n-2; i++ {
